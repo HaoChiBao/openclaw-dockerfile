@@ -76,15 +76,6 @@ openclaw doctor --fix || true
 PORT="${PORT:-18789}"
 echo "Starting OpenClaw gateway on port ${PORT}..."
 
-# Prefer binding to 0.0.0.0 when supported so Railway can route traffic
-# (Some OpenClaw versions use --host, others --bind, some default to loopback.)
-GATEWAY_ARGS=(--port "$PORT")
-
-HELP_TEXT="$(openclaw gateway --help 2>/dev/null || true)"
-if echo "$HELP_TEXT" | grep -q -- '--host'; then
-  GATEWAY_ARGS+=(--host "0.0.0.0")
-elif echo "$HELP_TEXT" | grep -q -- '--bind'; then
-  GATEWAY_ARGS+=(--bind "0.0.0.0")
-fi
-
-exec openclaw gateway "${GATEWAY_ARGS[@]}"
+# IMPORTANT: do NOT pass --bind 0.0.0.0 (your OpenClaw build rejects it).
+# Staying on loopback is fine for WhatsApp since it runs inside the container.
+exec openclaw gateway --port "$PORT"
